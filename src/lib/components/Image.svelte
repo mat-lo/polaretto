@@ -7,8 +7,10 @@
     sizes,
     width,
     height,
+    fit, // Add this
     loading = 'lazy',
     class: className = '',
+    style = '',
     ...restProps
   }: { 
     src: ImageData;
@@ -16,8 +18,10 @@
     sizes?: string;
     width?: number;
     height?: number;
+    fit?: 'cover' | 'contain' | 'fill' | 'inside' | 'outside'; // Add type
     loading?: 'lazy' | 'eager';
     class?: string;
+    style?: string;
     [key: string]: any;
   } = $props();
 
@@ -35,6 +39,13 @@
     }
     return '';
   });
+
+  // Merge placeholder style with user style and explicit height
+  let finalStyle = $derived([
+    placeholderStyle, 
+    height ? `height: ${height}px` : '', 
+    style
+  ].filter(Boolean).join('; '));
 </script>
 
 <!-- No conditional - data is always available for perfect SSR -->
@@ -47,13 +58,13 @@
   height={height || src.height}
   {loading}
   class={className}
-  style={placeholderStyle}
+  style={finalStyle}
   {...restProps}
 />
 
 <style>
   img {
-    width: 100%;
+    max-width: 100%;
     height: auto;
     display: block;
   }

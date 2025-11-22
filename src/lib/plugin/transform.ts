@@ -22,13 +22,30 @@ export async function transformImage(
   const originalWidth = metadata.width!;
   const originalHeight = metadata.height!;
   const aspectRatio = originalWidth / originalHeight;
+  
+  // Extract fit option
+  // @ts-ignore
+  const fit = params.get('fit') || 'cover';
 
   // Determine sizes to generate
-  const sizes = breakpoints.filter(w => w <= originalWidth);
-  if (!sizes.includes(originalWidth)) {
-    sizes.push(originalWidth);
+  let sizes: number[] = [];
+  const requestedWidth = params.get('w');
+  const requestedHeight = params.get('h');
+
+  if (requestedWidth) {
+    // User requested specific width
+    sizes = [parseInt(requestedWidth, 10)];
+  } else if (requestedHeight) {
+    // User requested specific height - calculate width
+    sizes = [Math.round(parseInt(requestedHeight, 10) * aspectRatio)];
+  } else {
+    // Default behavior: use breakpoints
+    sizes = breakpoints.filter(w => w <= originalWidth);
+    if (!sizes.includes(originalWidth)) {
+      sizes.push(originalWidth);
+    }
+    sizes.sort((a, b) => a - b);
   }
-  sizes.sort((a, b) => a - b);
 
   // Generate variants for each format and size
   const variants: Array<{ 
@@ -40,13 +57,22 @@ export async function transformImage(
 
   for (const format of formats) {
     for (const width of sizes) {
-      const height = Math.round(width / aspectRatio);
+      let height: number;
+      
+      if (requestedHeight && !requestedWidth) {
+         height = parseInt(requestedHeight, 10);
+      } else if (requestedWidth && requestedHeight) {
+         height = parseInt(requestedHeight, 10);
+      } else {
+         height = Math.round(width / aspectRatio);
+      }
 
       // Process image
       const processed = await processImageVariant.call(this, image, {
         width,
         height,
         format,
+        fit,
         filepath,
         config,
       });
@@ -72,8 +98,8 @@ export async function transformImage(
   // Build metadata object
   const imageData = {
     src: variants.find(v => v.format === 'original')?.url || variants[0].url,
-    width: originalWidth,
-    height: originalHeight,
+    width: requestedWidth ? parseInt(requestedWidth) : originalWidth,
+    height: requestedHeight ? parseInt(requestedHeight) : originalHeight,
     aspectRatio,
     placeholder: placeholderData,
     sources: sourcesByFormat,
@@ -89,16 +115,17 @@ async function processImageVariant(
     width: number;
     height: number;
     format: ImageFormat;
+    fit: any;
     filepath: string;
     config: ResolvedConfig;
   }
 ): Promise<{ url: string; size: number }> {
-  const { width, height, format, filepath, config } = options;
+  const { width, height, format, fit, filepath, config } = options;
 
   // Clone the sharp instance
   let processor = image.clone().resize(width, height, {
-    fit: 'cover',
-    position: 'entropy', // Smart crop
+    fit: fit,
+    position: 'entropy', // Smart crop (only applies if fit is cover/contain)
   });
 
   // Apply format-specific optimizations
@@ -149,7 +176,9 @@ async function processImageVariant(
     const cacheDir = join(config.root, 'node_modules/.cache/polaretto/assets');
     await mkdir(cacheDir, { recursive: true });
     const cacheFilePath = join(cacheDir, filename);
+    // console.log('[Vite Plugin] Writing image to:', cacheFilePath);
     await writeFile(cacheFilePath, buffer);
+    // console.log('[Vite Plugin] Write success');
     
     // Vite serves files from filesystem using /@fs/ prefix
     url = `/@fs${cacheFilePath}`;

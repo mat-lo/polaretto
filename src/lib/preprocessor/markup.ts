@@ -115,11 +115,32 @@ function buildQueryString(node: any, options: ImagePluginOptions): string {
 
   const attrs = node.attributes || [];
 
-  const getAttrValue = (name: string) => attrs.find((a: any) => a.name === name)?.value?.[0]?.data;
+  const getAttrValue = (name: string) => {
+    const attr = attrs.find((a: any) => a.name === name);
+    if (!attr) return undefined;
+    
+    // Handle value={100} or value={"100"} (MustacheTag -> Literal)
+    if (attr.value?.[0]?.type === 'MustacheTag' && attr.value[0].expression?.type === 'Literal') {
+      return attr.value[0].expression.value;
+    }
+    
+    // Handle value="100" (Text)
+    return attr.value?.[0]?.data;
+  };
 
   params.set('formats', getAttrValue('formats') || options.formats?.join(','));
   params.set('placeholder', getAttrValue('placeholder') || options.placeholder);
   params.set('sizes', getAttrValue('sizes'));
+  
+  // Extract specific dimensions if static
+  const width = getAttrValue('width');
+  if (width) params.set('w', width);
+  
+  const height = getAttrValue('height');
+  if (height) params.set('h', height);
+
+  const fit = getAttrValue('fit');
+  if (fit) params.set('fit', fit);
 
   // clean up null/undefined entries
   for (let [key, value] of [...params]) {

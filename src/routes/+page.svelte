@@ -8,12 +8,14 @@
   <section>
     <h2>1. Basic Image Component</h2>
     <p>Standard responsive image (test.png)</p>
-    <div class="image-wrapper">
+    <div style="width: 100%;" class="image-wrapper">
       <Image
         src="../assets/test.png"
         alt="Test Image"
-        width={800}
-        height={600}
+        height={100}
+        width={100}
+        fit="fill"
+        style="width: 100%;"
       />
     </div>
   </section>

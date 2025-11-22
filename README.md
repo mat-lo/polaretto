@@ -76,53 +76,61 @@ Use the `<Image>` component for standard images. It automatically generates sour
 ```svelte
 <script>
   import { Image } from 'polaretto';
-  import heroImage from './assets/hero.jpg?responsive'; // Or simply use string path in src
 </script>
 
-<!-- Using a relative path string (automatically transformed) -->
+<!-- 
+  - `src`: Path to the image. Automatically processed at build time.
+  - `width`, `height`: These control the *intrinsic dimensions* of the generated image.
+    If both are provided, `fit` determines how aspect ratio is handled.
+    If only one is provided, the other is calculated to maintain aspect ratio.
+  - `fit`: (Optional) How the image should fit the specified `width`/`height`.
+    Options: 'cover' (default, crops), 'contain' (letterboxes), 'fill' (stretches),
+    'inside' (resizes smaller if needed), 'outside' (resizes larger if needed).
+  - `style`: (Optional) Inline CSS styles to apply to the `<img>` tag.
+    This allows overriding default responsive behavior (e.g., `style="width: 100%"`).
+-->
 <Image 
   src="./assets/hero.jpg" 
   alt="Hero Image" 
   width={800} 
   height={600} 
+  fit="cover" 
+  style="border-radius: 8px;"
 />
 ```
 
-### 2. Picture Component (Multiple Formats)
+### 2. Picture Component (Multiple Formats & Art Direction)
 
-Use the `<Picture>` component to provide multiple formats (AVIF, WebP, JPEG) for better compression and fallbacks.
+Use the `<Picture>` component to provide multiple formats (AVIF, WebP, JPEG) and implement art direction (different images for different breakpoints).
 
 ```svelte
 <script>
   import { Picture } from 'polaretto';
 </script>
 
+<!-- 
+  - `src`: Main image source. Also supports `width`, `height`, `fit`.
+  - `formats`: (Optional) Array of image formats to generate for sources.
+  - `artDirectives`: (Optional) Array of objects for art direction. Each object:
+    - `media`: CSS media query string (e.g., '(max-width: 600px)').
+    - `src`: Image source for this media query. Also supports `width`, `height`, `fit`.
+  - `style`: (Optional) Inline CSS styles to apply to the `<img>` tag.
+-->
 <Picture
-  src="./assets/product.jpg"
-  alt="Product"
+  src="./assets/product-desktop.jpg"
+  alt="Product Photo"
+  width={1200}
+  height={675}
+  fit="cover"
   formats={['avif', 'webp', 'jpeg']}
-/>
-```
-
-### 3. Art Direction
-
-Switch between different images based on viewport size using the `artDirectives` prop.
-
-```svelte
-<script>
-  import { Picture } from 'polaretto';
-</script>
-
-<Picture
-  src="./assets/desktop.jpg"
-  alt="Hero"
   artDirectives={[
-    { media: '(max-width: 600px)', src: './assets/mobile.jpg' }
+    { media: '(max-width: 768px)', src: './assets/product-mobile.jpg', width: 600, height: 900, fit: 'cover' }
   ]}
+  style="box-shadow: 0 4px 8px rgba(0,0,0,0.1);"
 />
 ```
 
-### 4. Background Image
+### 3. Background Image
 
 Use the `<BackgroundImage>` component to apply an optimized image as a background using CSS `image-set`.
 
@@ -131,17 +139,32 @@ Use the `<BackgroundImage>` component to apply an optimized image as a backgroun
   import { BackgroundImage } from 'polaretto';
 </script>
 
+<!-- 
+  - `src`: Background image source. Also supports `width`, `height`, `fit`.
+  - `class`: CSS class to apply to the wrapping `div`.
+  - `style`: (Optional) Inline CSS styles to apply to the wrapping `div`.
+-->
 <BackgroundImage 
   src="./assets/texture.jpg" 
   class="hero-section"
+  width={1920}
+  height={1080}
+  fit="cover"
+  style="background-position: center bottom;"
 >
   <h1>Welcome</h1>
 </BackgroundImage>
 
 <style>
   .hero-section {
-    height: 500px;
-    /* ... other styles ... */
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    /* Note: background-image properties are handled by the component. 
+       You can still control other background styles here. */
   }
 </style>
 ```
