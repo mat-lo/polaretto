@@ -1,9 +1,6 @@
 <script lang="ts">
   import type { ImageData } from '../types';
 
-  // Props using Svelte 5 $props rune
-  // CRITICAL: src is now ImageData, not a string path
-  // The preprocessor converts string paths to ImageData objects before this component sees them
   let { 
     src, // This is ImageData, pre-loaded by preprocessor + Vite plugin
     alt,
@@ -14,7 +11,7 @@
     width,
     height,
     fit,
-    placeholder, // Add this
+    placeholder,
     artDirectives = [],
     ...restProps
   }: { 
@@ -23,8 +20,8 @@
     sizes?: string;
     width?: number;
     height?: number;
-    fit?: 'cover' | 'contain' | 'fill' | 'inside' | 'outside'; // Add type
-    placeholder?: 'blur' | 'dominant-color' | 'traced-svg' | 'pixelated' | 'none'; // Add type
+    fit?: 'cover' | 'contain' | 'fill' | 'inside' | 'outside';
+    placeholder?: 'blur' | 'dominant-color' | 'traced-svg' | 'pixelated' | 'none';
     loading?: 'lazy' | 'eager';
     class?: string;
     style?: string;
@@ -32,37 +29,69 @@
     [key: string]: any;
   } = $props();
 
-  // Computed placeholder style
-  // No $effect needed - data is already available!
-  let placeholderStyle = $derived.by(() => {
-    if (!src?.placeholder) return '';
+  // Generate unique class name based on src path + props for SSR consistency
+  const simpleHash = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; 
+    }
+    return 'pic-' + (hash >>> 0).toString(16);
+  };
 
-    let bgImage = '';
-    if (Array.isArray(src.placeholder)) {
-        bgImage = src.placeholder.map(url => `url(${url})`).join(', ');
-    } else {
-        bgImage = `url(${src.placeholder})`;
+  const uniqueClass = $derived(simpleHash(src.src + JSON.stringify(artDirectives) + alt));
+
+  const getBgImage = (p: string | string[] | null | undefined) => {
+    if (!p) return '';
+    if (Array.isArray(p)) {
+        return p.map(url => `url(${url})`).join(', ');
+    }
+    return `url(${p})`;
+  };
+
+  // Construct dynamic CSS for responsive placeholders
+  let responsiveStyles = $derived.by(() => {
+    let css = '';
+    
+    // Default (Main) Placeholder
+    const mainBg = getBgImage(src.placeholder);
+    if (mainBg) {
+        css += `.${uniqueClass} { background-image: ${mainBg}; }`;
     }
 
-    let style = `background-image: ${bgImage}; background-size: cover; background-position: center;`;
-
-    if (placeholder === 'pixelated') {
-      style += ' image-rendering: -moz-crisp-edges; image-rendering: pixelated;';
+    // Art Directives Placeholders
+    if (artDirectives) {
+        artDirectives.forEach(dir => {
+           if (typeof dir.src !== 'string' && dir.src.placeholder) {
+              const dirBg = getBgImage(dir.src.placeholder);
+              css += `@media ${dir.media} { .${uniqueClass} { background-image: ${dirBg} !important; } }`;
+           }
+        });
     }
-
-    return style;
+    // console.log('[Picture] Generated CSS:', css);
+    return css;
   });
 
-  // Merge placeholder style with user style and explicit height
-  let finalStyle = $derived([
-    placeholderStyle, 
-    height ? `height: ${height}px` : '',
-    style
-  ].filter(Boolean).join('; '));
+  // Base styles (layout + pixelated rendering)
+  let baseStyle = $derived.by(() => {
+    let s = `background-size: cover; background-position: center;`;
+    
+    if (height) {
+        s += ` height: ${height}px;`;
+    }
+
+    if (placeholder === 'pixelated') {
+      s += ' image-rendering: -moz-crisp-edges; image-rendering: pixelated;';
+    }
+    
+    return [s, style].filter(Boolean).join('; ');
+  });
 </script>
 
-<!-- No conditional rendering - data is always available at render time -->
-<!-- This ensures perfect SSR with <img> in initial HTML -->
+<!-- Inject dynamic styles for responsive placeholders -->
+{@html `<style>${responsiveStyles}</style>`}
+
 <picture class={className}>
   <!-- Art direction sources (if provided) -->
   {#if artDirectives && artDirectives.length > 0}
@@ -98,7 +127,8 @@
     width={src.width}
     height={src.height}
     {loading}
-    style={finalStyle}
+    class={uniqueClass}
+    style={baseStyle}
     {...restProps}
   />
 </picture>

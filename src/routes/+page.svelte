@@ -39,6 +39,7 @@
         src="../assets/test.png"
         alt="Art Direction Example"
         style="width: 100%; "
+        placeholder="pixelated"
         artDirectives={[
           { media: "(max-width: 600px)", src: "../assets/mobile.jpg" },
         ]}
