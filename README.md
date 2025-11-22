@@ -17,7 +17,7 @@ A powerful, zero-runtime image optimization library for Svelte and SvelteKit, in
 1.  Install the package (and its peer dependencies):
 
     ```bash
-    npm install polaretto sharp
+    npm install polaretto
     ```
 
 2.  Configure **Vite** in `vite.config.ts`:
