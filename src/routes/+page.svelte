@@ -1,5 +1,7 @@
 <script>
   import { Picture, Image, BackgroundImage } from "$lib";
+  import mobileImage from "../assets/mobile.jpg?imagetools";
+  import testImage from "../assets/test.png?imagetools";
 </script>
 
 <div class="container">
@@ -10,7 +12,7 @@
     <p>Standard responsive image (test.png)</p>
     <div style="width: 100%;" class="image-wrapper">
       <Image
-        src="../assets/test.png"
+        src={testImage}
         alt="Test Image"
         height={100}
         width={100}
@@ -25,9 +27,12 @@
     <p>Multiple formats and sizes (mobile.jpg)</p>
     <div class="image-wrapper">
       <Picture
-        src="../assets/mobile.jpg"
+        src={mobileImage}
         alt="Mobile Image"
         formats={["avif", "webp", "jpeg"]}
+        height={200}
+        width={100}
+        fit="fill"
       />
     </div>
   </section>
@@ -40,8 +45,9 @@
     </p>
     <div class="image-wrapper">
       <Picture
-        src="../assets/test.png"
+        src={testImage}
         alt="Art Direction Example"
+        style="width: 100%; "
         artDirectives={[
           { media: "(max-width: 600px)", src: "../assets/mobile.jpg" },
         ]}
