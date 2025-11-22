@@ -1,6 +1,6 @@
 {
   "name": "polaretto",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build && npm run prepack",
@@ -48,6 +48,7 @@
   "dependencies": {
     "estree-walker": "^3.0.3",
     "magic-string": "^0.30.21",
+    "node-addon-api": "^8.5.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
@@ -55,7 +56,6 @@
     "@sveltejs/kit": "^2.48.5",
     "@sveltejs/package": "^2.5.6",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
-    "node-addon-api": "^8.5.0",
     "node-gyp": "^12.1.0",
     "publint": "^0.3.15",
     "svelte": "^5.43.8",
