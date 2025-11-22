@@ -1,16 +1,18 @@
-# polaretto - Svelte/SvelteKit Image Optimization Library
+![cover.webp](cover.webp)
 
-A powerful, zero-runtime image optimization library for Svelte and SvelteKit, inspired by Astro's image tools.
+# polaretto
+
+Zero-runtime image optimization library for Svelte and SvelteKit. Takes your images in weird formats and makes them work in the browser in super optimized formats and sizes across all devices.
 
 ## Features
 
--   **Automatic Optimization**: Images are processed at build time using `sharp`.
--   **Responsive Images**: Automatically generates `srcset` and `sizes` for optimal loading.
--   **Multiple Formats**: Supports AVIF, WebP, and JPEG with automatic browser format negotiation.
--   **Art Direction**: Easily switch images based on media queries using the `<Picture>` component.
--   **Background Images**: Optimized background images using CSS `image-set`.
--   **Zero Runtime Overhead**: All processing happens at build time; components are lightweight wrappers.
--   **Development Cache**: Fast incremental builds and dev server startup.
+- **Automatic Optimization**: Images are processed at build time using `sharp`.
+- **Responsive Images**: Automatically generates `srcset` and `sizes` for optimal loading.
+- **Multiple Formats**: Supports AVIF, WebP, and JPEG with automatic browser format negotiation.
+- **Art Direction**: Easily switch images based on media queries using the `<Picture>` component.
+- **Background Images**: Optimized background images using CSS `image-set`.
+- **Zero Runtime Overhead**: All processing happens at build time; components are lightweight wrappers.
+- **Development Cache**: Fast incremental builds and dev server startup.
 
 ## Installation
 
@@ -23,16 +25,16 @@ A powerful, zero-runtime image optimization library for Svelte and SvelteKit, in
 2.  Configure **Vite** in `vite.config.ts`:
 
     ```typescript
-    import { sveltekit } from '@sveltejs/kit/vite';
-    import { defineConfig } from 'vite';
-    import { svelteImagePlugin } from 'polaretto/plugin';
+    import { sveltekit } from "@sveltejs/kit/vite";
+    import { defineConfig } from "vite";
+    import { svelteImagePlugin } from "polaretto/plugin";
 
     export default defineConfig({
       plugins: [
         svelteImagePlugin({
-          formats: ['avif', 'webp', 'jpeg'],
+          formats: ["avif", "webp", "jpeg"],
           breakpoints: [640, 768, 1024, 1280, 1536],
-          placeholder: 'blur',
+          placeholder: "blur",
         }),
         sveltekit(),
       ],
@@ -41,20 +43,20 @@ A powerful, zero-runtime image optimization library for Svelte and SvelteKit, in
 
 3.  Configure the **Svelte Preprocessor** in `svelte.config.js`:
 
-    **Important:** The `svelteImagePreprocessor` must run *before* `vitePreprocess`.
+    **Important:** The `svelteImagePreprocessor` must run _before_ `vitePreprocess`.
 
     ```javascript
-    import adapter from '@sveltejs/adapter-auto';
-    import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-    import { svelteImagePreprocessor } from 'polaretto/preprocessor';
+    import adapter from "@sveltejs/adapter-auto";
+    import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+    import { svelteImagePreprocessor } from "polaretto/preprocessor";
 
     /** @type {import('@sveltejs/kit').Config} */
     const config = {
       preprocess: [
         svelteImagePreprocessor({
-           // Options should match vite config for consistency
-           formats: ['avif', 'webp', 'jpeg'], 
-           placeholder: 'blur'
+          // Options should match vite config for consistency
+          formats: ["avif", "webp", "jpeg"],
+          placeholder: "blur",
         }),
         vitePreprocess(),
       ],
@@ -79,7 +81,7 @@ A powerful, zero-runtime image optimization library for Svelte and SvelteKit, in
 <script>
   import myImage from './assets/image.jpg';
 </script>
-<Image src={myImage} width={400} /> 
+<Image src={myImage} width={400} />
 <!-- Result: Full size image displayed at 400px width -->
 ```
 
@@ -92,7 +94,7 @@ Use the `<Image>` component for standard images. It automatically generates sour
   import { Image } from 'polaretto';
 </script>
 
-<!-- 
+<!--
   - `src`: Path to the image. Automatically processed at build time.
   - `width`, `height`: These control the *intrinsic dimensions* of the generated image.
     If both are provided, `fit` determines how aspect ratio is handled.
@@ -103,12 +105,12 @@ Use the `<Image>` component for standard images. It automatically generates sour
   - `style`: (Optional) Inline CSS styles to apply to the `<img>` tag.
     This allows overriding default responsive behavior (e.g., `style="width: 100%"`).
 -->
-<Image 
-  src="./assets/hero.jpg" 
-  alt="Hero Image" 
-  width={800} 
-  height={600} 
-  fit="cover" 
+<Image
+  src="./assets/hero.jpg"
+  alt="Hero Image"
+  width={800}
+  height={600}
+  fit="cover"
   style="border-radius: 8px;"
 />
 ```
@@ -122,7 +124,7 @@ Use the `<Picture>` component to provide multiple formats (AVIF, WebP, JPEG) and
   import { Picture } from 'polaretto';
 </script>
 
-<!-- 
+<!--
   - `src`: Main image source. Also supports `width`, `height`, `fit`.
   - `formats`: (Optional) Array of image formats to generate for sources.
   - `artDirectives`: (Optional) Array of objects for art direction. Each object:
@@ -153,13 +155,13 @@ Use the `<BackgroundImage>` component to apply an optimized image as a backgroun
   import { BackgroundImage } from 'polaretto';
 </script>
 
-<!-- 
+<!--
   - `src`: Background image source. Also supports `width`, `height`, `fit`.
   - `class`: CSS class to apply to the wrapping `div`.
   - `style`: (Optional) Inline CSS styles to apply to the wrapping `div`.
 -->
-<BackgroundImage 
-  src="./assets/texture.jpg" 
+<BackgroundImage
+  src="./assets/texture.jpg"
   class="hero-section"
   width={1920}
   height={1080}
@@ -177,7 +179,7 @@ Use the `<BackgroundImage>` component to apply an optimized image as a backgroun
     justify-content: center;
     color: white;
     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    /* Note: background-image properties are handled by the component. 
+    /* Note: background-image properties are handled by the component.
        You can still control other background styles here. */
   }
 </style>
@@ -187,12 +189,12 @@ Use the `<BackgroundImage>` component to apply an optimized image as a backgroun
 
 Both the Vite plugin and Preprocessor accept an options object:
 
-| Option | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `formats` | `string[]` | `['avif', 'webp', 'original']` | Output formats to generate. |
-| `breakpoints` | `number[]` | `[640, 768, 1024, 1280, 1536]` | Widths to resize images to. |
-| `placeholder` | `'blur' \| 'dominant-color' \| 'none'` | `'blur'` | Type of placeholder to generate. |
-| `cacheDir` | `string` | `node_modules/.cache/polaretto` | Directory for caching generated images. |
+| Option        | Type                                   | Default                         | Description                             |
+| :------------ | :------------------------------------- | :------------------------------ | :-------------------------------------- |
+| `formats`     | `string[]`                             | `['avif', 'webp', 'original']`  | Output formats to generate.             |
+| `breakpoints` | `number[]`                             | `[640, 768, 1024, 1280, 1536]`  | Widths to resize images to.             |
+| `placeholder` | `'blur' \| 'dominant-color' \| 'none'` | `'blur'`                        | Type of placeholder to generate.        |
+| `cacheDir`    | `string`                               | `node_modules/.cache/polaretto` | Directory for caching generated images. |
 
 ## How It Works
 
